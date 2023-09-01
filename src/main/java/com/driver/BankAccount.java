@@ -11,6 +11,9 @@ public class BankAccount {
         this.balance = balance;
         this.minBalance = minBalance;
     }
+    public BankAccount(){
+
+    }
 
     //getter and setter
     public String getName() {
