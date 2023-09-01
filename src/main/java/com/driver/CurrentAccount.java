@@ -1,9 +1,6 @@
 package com.driver;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.PriorityQueue;
 
 public class CurrentAccount extends BankAccount{
     String tradeLicenseId; //consists of Uppercase English characters only
@@ -32,56 +29,60 @@ public class CurrentAccount extends BankAccount{
         // A trade license Id is said to be valid if no two consecutive characters are same
         // If the license Id is valid, do nothing
         // If the characters of the license Id can be rearranged to create any valid license Id
-        // If it is not possible, throw "Valid License can not be generated" Exception
-
-        if(!checkValidation(this.tradeLicenseId)){
-            HashMap<Character, Integer> map = new HashMap<>();
-            int size = this.tradeLicenseId.length();
-            String id = this.tradeLicenseId;
-
-            for (int i = 0; i < size; i++) {
-                char ch = id.charAt(i);
-                map.put(ch, map.getOrDefault(ch, 0) + 1);
-            }
-
-            char[] licenseId = new char[size];
-            int idx = 0;
-
-            for(char ch : map.keySet()){
-                int freq = map.get(ch);
-
-                int currFreq = 1;
-                for (int i = idx; i < size; i += 2) {
-                    if (currFreq <= freq) {
-                        licenseId[i] = ch;
-                    } else {
-                        break;
-                    }
-                    currFreq++;
-                }
-                if(currFreq <= freq) throw new Exception("Valid License can not be generated");
-                while(licenseId[idx] != '\u0000' && idx < size-1){
-                    idx++;
-                }
-            }
-            //update the tradeLicenseId
-            this.tradeLicenseId = new String(licenseId);
-
-            if(!checkValidation(this.tradeLicenseId)){
-                throw new Exception("Valid License can not be generated");
+        // If it is not possible, throw "Valid License can not be generated" Exception'
+        char[]arr=tradeLicenseId.toCharArray();
+        if(isValid(arr)) return;
+        PriorityQueue<Pair> pq=new PriorityQueue<>((a,b)->{
+            return b.freq-a.freq;
+        });
+        int[] freq =new int[26];
+        int n=arr.length;
+        for (char c : arr) {
+            freq[c - 'A']++;
+        }
+        for(int i=0;i<26;i++){
+            if(freq[i]!=0){
+                pq.add(new Pair((char) (i + 'A'), freq[i]));
             }
         }
-
-    }
-
-    private boolean checkValidation(String tradeLicenseId){
-        int n = tradeLicenseId.length();
-        for(int i = 1; i < n; i++){
-            if(tradeLicenseId.charAt(i) == tradeLicenseId.charAt(i-1)){
-                return false;
+        StringBuilder sb=new StringBuilder();
+        while(!pq.isEmpty()){
+            Pair p1=pq.remove();
+            sb.append(p1.c);
+            p1.freq--;
+            boolean flag=false;
+            if(!pq.isEmpty()){
+                Pair p2=pq.remove();
+                sb.append(p2.c);
+                p2.freq--;
+                flag=true;
+                if(p1.freq>0)pq.add(p1);
+                if(p2.freq>0)pq.add(p2);
             }
+            if(flag) continue;
+            if(p1.freq>0)pq.add(p1);
+        }
+        String id=sb.toString();
+        char[]newArr=id.toCharArray();
+        if(isValid(newArr)) this.tradeLicenseId=id;
+        else throw new Exception("Valid License can not be generated");
+    }
+    private boolean isValid(char[]arr){
+        int n=arr.length;
+        for(int i=1;i<n;i++){
+            if(arr[i]==arr[i-1]) return false;
         }
         return true;
+    }
+    static class Pair{
+        char c;
+        int freq;
+
+        public Pair(char c, int freq) {
+            this.c = c;
+            this.freq = freq;
+        }
+
     }
 
 }
